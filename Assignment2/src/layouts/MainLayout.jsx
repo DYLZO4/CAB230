@@ -1,26 +1,37 @@
-// layouts/MainLayout.jsx
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 
-export default function MainLayout() {
+const MainLayout = () => {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  const navLinkClass = (path) =>
+    `text-sm font-medium px-3 py-2 rounded-md transition ${
+      currentPath === path
+        ? 'bg-blue-600 text-white'
+        : 'text-gray-700 hover:bg-gray-200'
+    }`;
+
   return (
-    <div>
-      <header className="p-4 bg-gray-800 text-white flex justify-between">
-        <Link to="/" className="font-bold text-lg">Screen Score</Link>
-        <nav className="space-x-4">
-          <Link to="/movies">Movies</Link>
-          <Link to="/login">Login</Link>
-          <Link to="/register">Register</Link>
-        </nav>
+    <div className="min-h-screen bg-gray-100 text-gray-900">
+      <header className="bg-white shadow-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-blue-600">
+            <Link to="/" className="hover:opacity-80 transition">🎬 MovieDB</Link>
+          </h1>
+          <nav className="flex space-x-2">
+            <Link to="/" className={navLinkClass('/')}>Home</Link>
+            <Link to="/movies" className={navLinkClass('/movies')}>Movies</Link>
+            <Link to="/login" className={navLinkClass('/login')}>Login</Link>
+            <Link to="/register" className={navLinkClass('/register')}>Register</Link>
+          </nav>
+        </div>
       </header>
 
-      <main className="p-6">
+      <main className="p-6 max-w-5xl mx-auto">
         <Outlet />
       </main>
-
-      <footer className="p-4 text-center text-sm text-gray-500">
-        <p>All Data is from IMDB, Metacritic and RottenTomatoes</p>
-        © {new Date().getFullYear()} Dylan Hessing 
-      </footer>
     </div>
   );
-}
+};
+
+export default MainLayout;

@@ -14,12 +14,12 @@ function App() {
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<LandingPage />} />
-          <Route path="/movies" element={<MoviesPage />} />
-          <Route path="/movies/:id" element={<MovieDetails />} />
-          <Route path="/person/:id" element={<PersonDetails />} />
+          <Route path="movies" element={<MoviesPage />} />
+          <Route path="movies/:imdbID" element={<MovieDetails />} />
+          <Route path="person/:id" element={<PersonDetails />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
         </Route>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
@@ -27,3 +27,4 @@ function App() {
 }
 
 export default App;
+
