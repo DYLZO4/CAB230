@@ -1,12 +1,35 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 export default function LandingPage() {
+  const backgroundStyle = {
+    backgroundImage: 'url("/images/MainPageBackground.jpg")',
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    height: "100vh",
+    width: "100%",
+    display: "flex", // Add Flexbox
+    justifyContent: "center", // Center horizontally
+    alignItems: "center", // Center vertically
+  };
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-200 text-gray-800 p-6">
-      <header className="mb-10 text-center">
-        <h1 className="text-5xl font-extrabold mb-4">🎬 Welcome to MovieApp</h1>
-        <p className="text-xl">Discover, explore, and track your favorite movies</p>
-      </header>
+    <div style={backgroundStyle}>
+      <div className="text-center p-6">
+        <header className="mb-10">
+          <h1 className="text-5xl font-extrabold mb-4 text-cinema-dark">
+            Welcome to Film Me In!
+          </h1>
+          <p className="text-xl text-cinema-dark">
+            Discover, explore, and track your favorite movies
+          </p>
+        </header>
+        <Link
+          to="/movies"
+          className="bg-cinema-red text-white rounded-lg px-6 py-3 text-lg font-medium transition hover:bg-cinema-gold"
+        >
+          Start Browsing
+        </Link>
+      </div>
     </div>
   );
 }

@@ -15,7 +15,7 @@
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/vite": "^4.1.4",
     "ag-grid-community": "^33.2.3",
-    "ag-grid-react": "^33.2.3",
+    "ag-grid-react": "^33.2.4",
     "axios": "^1.8.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
