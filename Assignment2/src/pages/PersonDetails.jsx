@@ -2,6 +2,26 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { fetchPersonDetails } from "../api/people";
 import { AgGridReact } from "ag-grid-react";
+import { Bar } from "react-chartjs-2"; // Import Bar chart
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const PersonDetails = () => {
   const { id } = useParams();
@@ -55,16 +75,24 @@ const PersonDetails = () => {
 
   if (authError) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-center">
-        <p className="text-lg text-red-500">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-cinema-dark text-cinema-lightdark">
+        <h1 className="text-3xl font-bold text-cinema-gold mb-4">
+          Authentication Required
+        </h1>
+        <p className="text-lg text-cinema-gray mb-6">
           You need to log in to access this page.
         </p>
-        <div className="mt-4 space-x-4">
-          <Link to="/login" className="text-blue-500 hover:underline">
+        <div className="flex space-x-4">
+          <Link
+            to="/login"
+            className="px-6 py-2 rounded-md bg-cinema-red text-white hover:bg-cinema-gold hover:text-cinema-dark transition"
+          >
             Login
           </Link>
-          <span>|</span>
-          <Link to="/register" className="text-blue-500 hover:underline">
+          <Link
+            to="/register"
+            className="px-6 py-2 rounded-md bg-cinema-lightdark text-white hover:bg-cinema-gold hover:text-cinema-dark transition"
+          >
             Register
           </Link>
         </div>
@@ -88,6 +116,57 @@ const PersonDetails = () => {
     );
   }
 
+  // Prepare data for the chart
+  const chartData = {
+    labels: person.roles.map((role) => role.movieName), // Movie names as labels
+    datasets: [
+      {
+        label: "IMDb Rating",
+        data: person.roles.map((role) => role.imdbRating || 0), // IMDb ratings as data
+        backgroundColor: "#b71c1c", // Tailwind cinema.red for bars
+        borderColor: "#b71c1c", // Tailwind cinema.red for borders
+        hoverBackgroundColor: "#ffcc00", // Tailwind cinema.gold for hover effect
+        hoverBorderColor: "#ffcc00", // Tailwind cinema.gold for hover border
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+        labels: {
+          color: "#D3D3D3", // Tailwind cinema.gray for legend text
+        },
+      },
+      title: {
+        display: true,
+        text: "Spread of IMDb Ratings",
+        color: "#D3D3D3", // Tailwind cinema.gray for title text
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: "#D3D3D3", // Tailwind cinema.gray for x-axis labels
+        },
+        grid: {
+          color: "#2a2a2a", // Tailwind cinema.lightdark for grid lines
+        },
+      },
+      y: {
+        ticks: {
+          color: "#D3D3D3", // Tailwind cinema.gray for y-axis labels
+        },
+        grid: {
+          color: "#2a2a2a", // Tailwind cinema.lightdark for grid lines
+        },
+      },
+    },
+  };
+
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
       <div style={{ marginBottom: "20px" }}>
@@ -104,12 +183,25 @@ const PersonDetails = () => {
         )}
         <h2 style={{ marginTop: "20px", fontSize: "1.5rem" }}>Roles</h2>
       </div>
-      <div style={{ height: 500 }} className="my-custom-theme">
-        <AgGridReact
-          columnDefs={columnDefs}
-          rowData={person.roles || []} // Ensure rowData is an empty array if undefined
-          components={components}
-        />
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <div
+          style={{ height: "500px", width: "100%" }}
+          className="my-custom-theme"
+        >
+          <AgGridReact
+            columnDefs={columnDefs}
+            rowData={person.roles || []} // Ensure rowData is an empty array if undefined
+            components={components}
+            domLayout="normal" // Adjusts height to fit content
+            suppressHorizontalScroll={true} // Disables horizontal scrolling
+            onGridReady={(params) => {
+              params.api.sizeColumnsToFit(); // Automatically adjusts column widths
+            }}
+          />
+        </div>
+      </div>
+      <div style={{ marginTop: "40px" }}>
+        <Bar data={chartData} options={chartOptions} />
       </div>
     </div>
   );

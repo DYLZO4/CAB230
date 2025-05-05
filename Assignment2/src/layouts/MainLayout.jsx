@@ -18,7 +18,7 @@ const MainLayout = () => {
   const handleLogout = async () => {
     try {
       await logoutUser(localStorage.getItem('refreshToken')); // Wait for logout to complete
-      window.location.href = '/'; // Redirect after logout
+      window.location.href = '/login'; // Redirect after logout
     } catch (error) {
       console.error('Logout failed:', error);
     }

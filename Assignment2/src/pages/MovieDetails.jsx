@@ -14,6 +14,7 @@ const MovieDetailsPage = () => {
     { headerName: "Name", field: "name", cellRenderer: "linkRenderer" },
     { headerName: "Character", field: "characters" },
   ]);
+  
 
   const components = {
     linkRenderer: (params) => {
@@ -55,13 +56,19 @@ const MovieDetailsPage = () => {
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", marginBottom: "20px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          marginBottom: "20px",
+        }}
+      >
         <div style={{ flex: 1 }}>
           <h1 style={{ fontSize: "2.5rem", marginBottom: "10px" }}>
-            {movie.title} ({movie.year})
+            {movie.title}
           </h1>
           <p>
-            <strong>Plot:</strong> {movie.plot || "N/A"}
+            <strong >Released:</strong> {movie.year || "N/A"}
           </p>
           <p>
             <strong>Genres:</strong>{" "}
@@ -77,10 +84,13 @@ const MovieDetailsPage = () => {
             <strong>Country:</strong> {movie.country || "N/A"}
           </p>
           <p>
+            <strong>Plot:</strong> {movie.plot || "N/A"}
+          </p>
+          <p>
             <strong>Box Office:</strong>{" "}
             {movie.boxoffice ? `$${movie.boxoffice.toLocaleString()}` : "N/A"}
           </p>
-          <h2>Ratings</h2>
+          <strong>Ratings:</strong>
           <ul>
             {movie.ratings && movie.ratings.length > 0 ? (
               movie.ratings.map((rating, index) => (
@@ -101,12 +111,19 @@ const MovieDetailsPage = () => {
           />
         </div>
       </div>
-      <div style={{ height: 500 }} className="my-custom-theme">
-        <AgGridReact
-          columnDefs={columnDefs}
-          rowData={movie.principals || []} // Ensure rowData is an empty array if undefined
-          components={components}
-        />
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <div style={{ width: "100%" }} className="my-custom-theme">
+          <AgGridReact
+            columnDefs={columnDefs}
+            rowData={movie.principals || []} // Ensure rowData is an empty array if undefined
+            components={components}
+            domLayout="autoHeight"
+            suppressHorizontalScroll={true}
+            onGridReady={(params) => {
+              params.api.sizeColumnsToFit(); // Automatically adjusts column widths
+            }}
+          />
+        </div>
       </div>
     </div>
   );

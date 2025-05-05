@@ -8,18 +8,43 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const MoviePage = () => {
   const [columnDefs] = useState([
-    { headerName: "Title", field: "title", cellRenderer: "linkRenderer" },
-    { headerName: "Year", field: "year" },
-    { headerName: "IMDb Rating", field: "imdbRating" },
-    { headerName: "Rotten Tomatoes", field: "rottenTomatoesRating" },
-    { headerName: "Metacritic", field: "metacriticRating" },
+    { headerName: "Title", field: "title", cellRenderer: "linkRenderer", sortable: false },
+    { headerName: "Year", field: "year", maxWidth: 100, sortable: false },
+    {
+      headerName: "IMDb Rating",
+      field: "imdbRating",
+      maxWidth: 150,
+      cellRenderer: "ratingRenderer",
+      sortable: false, // Disable sorting
+    },
+    {
+      headerName: "Rotten Tomatoes",
+      field: "rottenTomatoesRating",
+      maxWidth: 150,
+      cellRenderer: "ratingRenderer",
+      sortable: false, // Disable sorting
+    },
+    {
+      headerName: "Metacritic",
+      field: "metacriticRating",
+      maxWidth: 150,
+      cellRenderer: "ratingRenderer",
+      sortable: false, // Disable sorting
+    },
     {
       headerName: "Classification",
       field: "classification",
-      cellRenderer: "classificationRenderer", // Use the custom renderer
+      cellRenderer: "classificationRenderer",
+      sortable: false, // Disable sorting
     },
   ]);
 
+  const getRatingColor = (rating) => {
+    if (rating === null || rating === undefined) return "hsl(0, 0%, 50%)"; // Gray for invalid ratings
+    const hue = (rating / 100) * 120; // Map rating (0-100) to hue (0-120)
+    return `hsl(${hue}, 100%, 50%)`; // Full saturation and 50% lightness
+  };
+  
   const components = {
     linkRenderer: (params) => {
       if (!params.data || !params.data.imdbID) {
@@ -38,8 +63,7 @@ const MoviePage = () => {
       if (!params.value) {
         return <span>No Classification</span>;
       }
-
-      // Map classification to image paths
+  
       const classificationImages = {
         G: "/images/classifications/G.png",
         "TV-PG": "/images/classifications/PG.png",
@@ -50,19 +74,40 @@ const MoviePage = () => {
         "TV-MA": "/images/classifications/MA.png",
         R: "/images/classifications/R.png",
       };
-
+  
       const imagePath = classificationImages[params.value];
-
+  
       if (!imagePath) {
         return <span>Unknown Classification</span>;
       }
-
+  
       return (
         <img
           src={imagePath}
           alt={params.value}
           style={{ width: "30px", height: "30px" }}
         />
+      );
+    },
+    ratingRenderer: (params) => {
+      if (!params.value && params.value !== 0) {
+        return <span>No Rating</span>;
+      }
+  
+      let normalizedRating = params.value;
+      if (params.colDef.field === "imdbRating") {
+        normalizedRating = params.value * 10; // Normalize IMDb (1-10) to 0-100
+      } else if (params.colDef.field === "metacriticRating") {
+        normalizedRating = parseFloat(params.value); // Ensure it's a number
+      }
+  
+      const color = getRatingColor(normalizedRating);
+      return (
+        <span style={{ color, fontWeight: "bold" }}>
+          {params.colDef.field === "rottenTomatoesRating"
+            ? `${params.value}%` // Add % for Metacritic
+            : params.value}
+        </span>
       );
     },
   };
@@ -92,7 +137,7 @@ const MoviePage = () => {
         params.successCallback(rows, lastRow);
       } catch (err) {
         console.error("Error fetching movies:", err);
-        setError("An error occurred while fetching movies.");
+        setError("An error occurred while fetching movies. Please try again later.");
         params.failCallback();
       }
     },
@@ -129,27 +174,30 @@ const MoviePage = () => {
             )
           )}
         </select>
-        <button
-          type="submit"
-          className="px-6 py-2 rounded-md bg-cinema-red text-white hover:bg-cinema-gold hover:text-cinema-dark transition"
-        >
-          Search
-        </button>
+      
       </form>
 
       {error && <p className="text-cinema-red mb-4">{error}</p>}
-
-      <div style={{ height: 500 }} className="my-custom-theme">
-        <AgGridReact
-          ref={gridRef}
-          rowModelType="infinite"
-          cacheBlockSize={100}
-          maxBlocksInCache={10}
-          columnDefs={columnDefs}
-          components={components}
-          datasource={dataSource}
-          
-        />
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <div
+          style={{ height: "500px", width: "100%" }}
+          className="my-custom-theme"
+        >
+          <AgGridReact
+            ref={gridRef}
+            rowModelType="infinite"
+            cacheBlockSize={100}
+            maxBlocksInCache={10}
+            columnDefs={columnDefs}
+            components={components}
+            datasource={dataSource}
+            domLayout="normal" // Change from "autoHeight" to "normal"
+            suppressHorizontalScroll={true}
+            onGridReady={(params) => {
+              params.api.sizeColumnsToFit(); // Automatically adjusts column widths
+            }}
+          />
+        </div>
       </div>
     </div>
   );
