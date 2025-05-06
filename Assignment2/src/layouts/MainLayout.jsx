@@ -54,6 +54,11 @@ const MainLayout = () => {
       <main className="p-6 mx-auto max-w-7xl">
         <Outlet />
       </main>
+
+      <footer className="bg-cinema-dark text-cinema-gray text-center py-4">
+        <p className="text-sm mb-2">All data is from IMDb, Metacritic and Rotten Tomatoes</p>
+        <p className="text-sm">&copy; {new Date().getFullYear()} Dylan Hessing</p>
+      </footer>
     </div>
   );
 };

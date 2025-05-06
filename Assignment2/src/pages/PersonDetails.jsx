@@ -29,6 +29,7 @@ const PersonDetails = () => {
   const [person, setPerson] = useState(null);
   const [error, setError] = useState(null);
   const [authError, setAuthError] = useState(false);
+  const [chartData, setChartData] = useState(null); // State for chart data
 
   const [columnDefs] = useState([
     { headerName: "Role", field: "category" },
@@ -52,18 +53,34 @@ const PersonDetails = () => {
       );
     },
   };
+  
 
   useEffect(() => {
     const loadPersonDetails = async () => {
       try {
         const data = await fetchPersonDetails(id);
         setPerson(data);
+
+        // Initialize chart data
+        setChartData({
+          labels: data.roles.map((role) => role.movieName),
+          datasets: [
+            {
+              label: "IMDb Rating",
+              data: data.roles.map((role) => role.imdbRating || 0),
+              backgroundColor: "#b71c1c",
+              borderColor: "#b71c1c",
+              hoverBackgroundColor: "#ffcc00",
+              hoverBorderColor: "#ffcc00",
+              borderWidth: 1,
+            },
+          ],
+        });
       } catch (err) {
         console.error("Error fetching person details:", err);
 
         if (err.message.includes("401")) {
-          setAuthError(true); // Set authentication error
-          console.log("Authentication error:", err.message);
+          setAuthError(true);
         } else {
           setError("An error occurred while fetching person details.");
         }
@@ -72,6 +89,29 @@ const PersonDetails = () => {
 
     loadPersonDetails();
   }, [id]);
+
+  const handleSortChanged = (params) => {
+    const sortedData = [];
+    params.api.forEachNodeAfterFilterAndSort((node) => {
+      sortedData.push(node.data);
+    });
+
+    // Update chart data based on sorted grid data
+    setChartData({
+      labels: sortedData.map((role) => role.movieName),
+      datasets: [
+        {
+          label: "IMDb Rating",
+          data: sortedData.map((role) => role.imdbRating || 0),
+          backgroundColor: "#b71c1c",
+          borderColor: "#b71c1c",
+          hoverBackgroundColor: "#ffcc00",
+          hoverBorderColor: "#ffcc00",
+          borderWidth: 1,
+        },
+      ],
+    });
+  };
 
   if (authError) {
     return (
@@ -102,35 +142,19 @@ const PersonDetails = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="flex items-center justify-center min-h-screen bg-cinema-dark">
         <p className="text-lg text-red-500">{error}</p>
       </div>
     );
   }
 
-  if (!person) {
+  if (!person || !chartData) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <p className="text-lg text-gray-500">Loading...</p>
+      <div className="flex items-center justify-center min-h-screen bg-cinema-dark">
+        <p className="text-lg text-cinema-gray">Loading...</p>
       </div>
     );
   }
-
-  // Prepare data for the chart
-  const chartData = {
-    labels: person.roles.map((role) => role.movieName), // Movie names as labels
-    datasets: [
-      {
-        label: "IMDb Rating",
-        data: person.roles.map((role) => role.imdbRating || 0), // IMDb ratings as data
-        backgroundColor: "#b71c1c", // Tailwind cinema.red for bars
-        borderColor: "#b71c1c", // Tailwind cinema.red for borders
-        hoverBackgroundColor: "#ffcc00", // Tailwind cinema.gold for hover effect
-        hoverBorderColor: "#ffcc00", // Tailwind cinema.gold for hover border
-        borderWidth: 1,
-      },
-    ],
-  };
 
   const chartOptions = {
     responsive: true,
@@ -138,30 +162,30 @@ const PersonDetails = () => {
       legend: {
         position: "top",
         labels: {
-          color: "#D3D3D3", // Tailwind cinema.gray for legend text
+          color: "#D3D3D3",
         },
       },
       title: {
         display: true,
         text: "Spread of IMDb Ratings",
-        color: "#D3D3D3", // Tailwind cinema.gray for title text
+        color: "#D3D3D3",
       },
     },
     scales: {
       x: {
         ticks: {
-          color: "#D3D3D3", // Tailwind cinema.gray for x-axis labels
+          color: "#D3D3D3",
         },
         grid: {
-          color: "#2a2a2a", // Tailwind cinema.lightdark for grid lines
+          color: "#2a2a2a",
         },
       },
       y: {
         ticks: {
-          color: "#D3D3D3", // Tailwind cinema.gray for y-axis labels
+          color: "#D3D3D3",
         },
         grid: {
-          color: "#2a2a2a", // Tailwind cinema.lightdark for grid lines
+          color: "#2a2a2a",
         },
       },
     },
@@ -190,13 +214,13 @@ const PersonDetails = () => {
         >
           <AgGridReact
             columnDefs={columnDefs}
-            rowData={person.roles || []} // Ensure rowData is an empty array if undefined
+            rowData={person.roles || []}
             components={components}
-            domLayout="normal" // Adjusts height to fit content
-            suppressHorizontalScroll={true} // Disables horizontal scrolling
+            domLayout="normal"
             onGridReady={(params) => {
-              params.api.sizeColumnsToFit(); // Automatically adjusts column widths
+              params.api.sizeColumnsToFit();
             }}
+            onSortChanged={handleSortChanged} // Listen for sort changes
           />
         </div>
       </div>

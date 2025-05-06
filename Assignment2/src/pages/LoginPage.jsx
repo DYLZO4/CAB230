@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { loginUser } from "../api/auth";
 import { useNavigate } from "react-router-dom";
 
@@ -7,6 +7,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(""); // State for error message
   const navigate = useNavigate();
+
+   useEffect(() => {
+      const jwtToken = localStorage.getItem("jwtToken");
+      if (jwtToken) {
+        navigate("/");
+      }
+    }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,8 +46,7 @@ export default function LoginPage() {
             <input
               type="email"
               id="email"
-              className="w-full mt-1 p-2 border rounded-md border-cinema-grey"
-              value={email}
+              className="w-full mt-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cinema-gold text-black"
               onChange={(e) => setEmail(e.target.value)}
               required
             />
@@ -55,7 +61,7 @@ export default function LoginPage() {
             <input
               type="password"
               id="password"
-              className="w-full mt-1 p-2 border rounded-md border-cinema-grey"
+              className="w-full mt-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cinema-gold text-black"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
+import backgroundImage from "../assets/images/LandingPageBackground.jpg"; // Import the background image
 
 export default function LandingPage() {
   const backgroundStyle = {
-    backgroundImage: 'url("/images/MainPageBackground.jpg")',
+    backgroundImage: `url(${backgroundImage})`,
     backgroundSize: "cover",
     backgroundPosition: "center",
     height: "100vh",

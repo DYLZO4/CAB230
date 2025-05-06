@@ -4,7 +4,11 @@ const instance = axios.create({
   baseURL: 'http://4.237.58.241:3000',
 });
 
-// Request: Attach access token
+// Separate instance for refreshing tokens
+const refreshInstance = axios.create({
+  baseURL: 'http://4.237.58.241:3000',
+});
+
 instance.interceptors.request.use((config) => {
   const token = localStorage.getItem('jwtToken');
   if (token) {
@@ -13,36 +17,38 @@ instance.interceptors.request.use((config) => {
   return config;
 });
 
-// Response: Refresh token on 401
 instance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
+    
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
+      !originalRequest.url.includes('/user/refresh') &&
       localStorage.getItem('refreshToken')
     ) {
       originalRequest._retry = true;
-
+      console.log('Error response status:', error.response.status);
       try {
         const refreshToken = localStorage.getItem('refreshToken');
-
-        const res = await instance.post('/user/refresh', {
+        const res = await refreshInstance.post('/user/refresh', {
           refreshToken,
         });
-
-        const newAccessToken = res.data.token;
+      
+        const newAccessToken = res.data.bearerToken.token;
+        const newRefreshToken = res.data.refreshToken.token;
+      
+        // Store new tokens
         localStorage.setItem('jwtToken', newAccessToken);
-
+        localStorage.setItem('refreshToken', newRefreshToken);
+      
         // Retry original request with new token
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return instance(originalRequest);
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
 
-        // Optionally clear tokens and redirect to login
         localStorage.removeItem('jwtToken');
         localStorage.removeItem('refreshToken');
         window.location.href = '/login';
@@ -54,5 +60,6 @@ instance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default instance;

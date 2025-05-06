@@ -118,7 +118,6 @@ const MovieDetailsPage = () => {
             rowData={movie.principals || []} // Ensure rowData is an empty array if undefined
             components={components}
             domLayout="autoHeight"
-            suppressHorizontalScroll={true}
             onGridReady={(params) => {
               params.api.sizeColumnsToFit(); // Automatically adjusts column widths
             }}
