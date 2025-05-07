@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import backgroundImage from "../assets/images/LandingPageBackground.jpg"; 
+import backgroundImage from "../assets/images/LandingPageBackground.jpg";
 
 export default function LandingPage() {
   const backgroundStyle = {
@@ -8,13 +8,12 @@ export default function LandingPage() {
     backgroundPosition: "center",
     height: "100vh",
     width: "100%",
-    display: "flex", 
-    justifyContent: "center", 
-    alignItems: "center", 
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
   };
 
-  
-  const isLoggedIn = !!localStorage.getItem('jwtToken');
+  const isLoggedIn = !!localStorage.getItem("jwtToken");
 
   return (
     <div style={backgroundStyle}>
@@ -27,8 +26,8 @@ export default function LandingPage() {
             Discover, explore, and track your favorite movies
           </p>
         </header>
-        
-        <div className="button-container flex justify-center gap-4"> 
+
+        <div className="button-container flex justify-center gap-4">
           <Link
             to="/movies"
             className="bg-cinema-red text-white rounded-lg px-6 py-3 text-lg font-medium transition hover:bg-cinema-gold"

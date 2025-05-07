@@ -46,14 +46,13 @@ const PersonDetails = () => {
       return (
         <a
           href={`/movies/${params.data.movieId}`}
-          style={{ textDecoration: "none", color: "#ffcc00" }} 
+          style={{ textDecoration: "none", color: "#ffcc00" }}
         >
           {params.value}
         </a>
       );
     },
   };
-  
 
   useEffect(() => {
     const loadPersonDetails = async () => {
@@ -95,7 +94,6 @@ const PersonDetails = () => {
       sortedData.push(node.data);
     });
 
-   
     setChartData({
       labels: sortedData.map((role) => role.movieName),
       datasets: [
@@ -219,7 +217,7 @@ const PersonDetails = () => {
             onGridReady={(params) => {
               params.api.sizeColumnsToFit();
             }}
-            onSortChanged={handleSortChanged} 
+            onSortChanged={handleSortChanged}
           />
         </div>
       </div>

@@ -69,7 +69,7 @@ const MoviePage = () => {
             style={{
               fontStyle: "italic",
               color: "#D3D3D3",
-              
+
               width: "100%",
             }}
           >

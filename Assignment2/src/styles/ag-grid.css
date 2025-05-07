@@ -1,46 +1,46 @@
 .my-custom-theme .ag-root-wrapper {
-    background-color: #1a1a1a; 
-    color: #D3D3D3; 
+  background-color: #1a1a1a;
+  color: #d3d3d3;
 }
 
 .my-custom-theme .ag-header {
-    background-color: #b71c1c; 
-    color: #ffcc00; 
+  background-color: #b71c1c;
+  color: #ffcc00;
 }
 
 .my-custom-theme .ag-row:nth-child(odd) {
-    background-color: #121212; 
-    color: #D3D3D3; 
+  background-color: #121212;
+  color: #d3d3d3;
 }
 
 .my-custom-theme .ag-row:nth-child(even) {
-    background-color: #121212; 
-    color: #D3D3D3; 
+  background-color: #121212;
+  color: #d3d3d3;
 }
 
 .my-custom-theme .ag-header-cell-resize {
-    background-color: #b71c1c; 
+  background-color: #b71c1c;
 }
 
-.my-custom-theme .ag-row-hover, 
+.my-custom-theme .ag-row-hover,
 .my-custom-theme .ag-row-selected {
-    background-color: #333333;
-    color: #ffffff; 
+  background-color: #333333;
+  color: #ffffff;
 }
 
 .my-custom-theme .ag-root ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-  
-  .my-custom-theme .ag-root ::-webkit-scrollbar-thumb {
-    background-color: #D3D3D3;
-  }
-  
-  .my-custom-theme .ag-root ::-webkit-scrollbar-thumb:hover {
-    background-color: #ffcc00;
-  }
-  
-  .my-custom-theme .ag-root ::-webkit-scrollbar-track {
-    background-color: #2a2a2a;
-  }
+  width: 10px;
+  height: 10px;
+}
+
+.my-custom-theme .ag-root ::-webkit-scrollbar-thumb {
+  background-color: #d3d3d3;
+}
+
+.my-custom-theme .ag-root ::-webkit-scrollbar-thumb:hover {
+  background-color: #ffcc00;
+}
+
+.my-custom-theme .ag-root ::-webkit-scrollbar-track {
+  background-color: #2a2a2a;
+}

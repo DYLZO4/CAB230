@@ -15,11 +15,10 @@ export default function RegisterPage() {
     }
   }, [navigate]);
 
-  const isValidEmail = (email) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const isStrongPassword = (password) =>
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,12 +38,12 @@ export default function RegisterPage() {
 
     try {
       await registerUser(email, password);
-       try {
-            await loginUser(email, password); 
-            navigate(-1);
-       }catch (err) {
+      try {
+        await loginUser(email, password);
+        navigate(-1);
+      } catch (err) {
         console.error("Login failed:", err);
-        navigate("/login"); 
+        navigate("/login");
       }
     } catch (err) {
       console.error("Registration failed:", err);
@@ -56,10 +55,11 @@ export default function RegisterPage() {
           setErrorMessage("Registration failed. Please try again.");
         }
       } catch (parseError) {
-        setErrorMessage(err.message || "Registration failed. Please try again.");
+        setErrorMessage(
+          err.message || "Registration failed. Please try again."
+        );
       }
     }
-    
   };
 
   return (
@@ -84,7 +84,7 @@ export default function RegisterPage() {
             <input
               type="email"
               id="email"
-              className="w-full mt-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cinema-gold text-black" 
+              className="w-full mt-1 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-cinema-gold text-black"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -106,7 +106,8 @@ export default function RegisterPage() {
               required
             />
             <p className="text-xs text-cinema-gray mt-1">
-            Must be at least 8 characters long and include at least one upper case letter, one number and a special character.
+              Must be at least 8 characters long and include at least one upper
+              case letter, one number and a special character.
             </p>
           </div>
           <button

@@ -14,7 +14,6 @@ const MovieDetailsPage = () => {
     { headerName: "Name", field: "name", cellRenderer: "linkRenderer" },
     { headerName: "Character", field: "characters" },
   ]);
-  
 
   const components = {
     linkRenderer: (params) => {
@@ -68,7 +67,7 @@ const MovieDetailsPage = () => {
             {movie.title}
           </h1>
           <p>
-            <strong >Released:</strong> {movie.year || "N/A"}
+            <strong>Released:</strong> {movie.year || "N/A"}
           </p>
           <p>
             <strong>Genres:</strong>{" "}
@@ -116,11 +115,11 @@ const MovieDetailsPage = () => {
         <div style={{ width: "100%" }} className="my-custom-theme">
           <AgGridReact
             columnDefs={columnDefs}
-            rowData={movie.principals || []} 
+            rowData={movie.principals || []}
             components={components}
             domLayout="autoHeight"
             onGridReady={(params) => {
-              params.api.sizeColumnsToFit(); 
+              params.api.sizeColumnsToFit();
             }}
           />
         </div>

@@ -4,7 +4,7 @@ export async function fetchPersonDetails(id) {
   try {
     const response = await api.get(`/people/${id}`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('jwtToken')}`, 
+        Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
       },
     });
     return response.data;
