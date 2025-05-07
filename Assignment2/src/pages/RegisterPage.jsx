@@ -32,7 +32,7 @@ export default function RegisterPage() {
 
     if (!isStrongPassword(password)) {
       setErrorMessage(
-        "Password must be at least 8 characters long and include at least one letter and one number."
+        "Password must be at least 8 characters long and include at least one upper case letter, one number and a special character."
       );
       return;
     }
@@ -106,7 +106,7 @@ export default function RegisterPage() {
               required
             />
             <p className="text-xs text-cinema-gray mt-1">
-              Must be at least 8 characters and include a number.
+            Must be at least 8 characters long and include at least one upper case letter, one number and a special character.
             </p>
           </div>
           <button

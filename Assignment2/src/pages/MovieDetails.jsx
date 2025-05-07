@@ -111,6 +111,7 @@ const MovieDetailsPage = () => {
           />
         </div>
       </div>
+      <h1 style={{ marginTop: "20px", fontSize: "1.5rem" }}>Cast</h1>
       <div style={{ display: "flex", alignItems: "center" }}>
         <div style={{ width: "100%" }} className="my-custom-theme">
           <AgGridReact

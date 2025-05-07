@@ -18,65 +18,82 @@ const MoviePage = () => {
       field: "title",
       cellRenderer: "linkRenderer",
       sortable: false,
+      flex: 2,
     },
-    { headerName: "Year", 
-      field: "year", 
-      maxWidth: 75, 
-      sortable: false },
-      
+    {
+      headerName: "Year",
+      field: "year",
+      maxWidth: 75,
+      sortable: false,
+    },
     {
       headerName: "IMDb Rating",
       field: "imdbRating",
       maxWidth: 150,
       cellRenderer: "ratingRenderer",
-      sortable: false, // Disable sorting
+      sortable: false,
     },
     {
       headerName: "Rotten Tomatoes",
       field: "rottenTomatoesRating",
       maxWidth: 150,
       cellRenderer: "ratingRenderer",
-      sortable: false, // Disable sorting
+      sortable: false,
     },
     {
       headerName: "Metacritic",
       field: "metacriticRating",
       maxWidth: 150,
       cellRenderer: "ratingRenderer",
-      sortable: false, // Disable sorting
+      sortable: false,
     },
     {
       headerName: "Classification",
       field: "classification",
       cellRenderer: "classificationRenderer",
-      sortable: 200, // Disable sorting
+      sortable: false,
     },
   ]);
 
-
-
   const getRatingColor = (rating) => {
-    if (rating === null || rating === undefined) return "hsl(0, 0%, 50%)"; // Gray for invalid ratings
-    const hue = (rating / 100) * 120; // Map rating (0-100) to hue (0-120)
-    return `hsl(${hue}, 100%, 50%)`; // Full saturation and 50% lightness
+    if (rating === null || rating === undefined) return "hsl(0, 0%, 50%)";
+    const hue = (rating / 100) * 120;
+    return `hsl(${hue}, 100%, 50%)`;
   };
-
 
   const components = {
     linkRenderer: (params) => {
+      if (params.data?.isEndRow) {
+        return (
+          <div
+            style={{
+              fontStyle: "italic",
+              color: "#D3D3D3",
+              
+              width: "100%",
+            }}
+          >
+            End of Results
+          </div>
+        );
+      }
+
       if (!params.data || !params.data.imdbID) {
         return <span>Invalid Data</span>;
       }
+
       return (
         <a
           href={`/movies/${params.data.imdbID}`}
-          style={{ textDecoration: "none", color: "#ffcc00" }} // Gold color for links
+          style={{ textDecoration: "none", color: "#ffcc00" }}
         >
           {params.value}
         </a>
       );
     },
     classificationRenderer: (params) => {
+      if (params.data?.isEndRow) return "";
+
       if (!params.value) {
         return <span>No Classification</span>;
       }
@@ -91,10 +108,8 @@ const MoviePage = () => {
         "TV-MA": MA,
         R: R,
       };
-      
 
       const imagePath = classificationImages[params.value];
-
       if (!imagePath) {
         return <span>Unknown Classification</span>;
       }
@@ -108,22 +123,24 @@ const MoviePage = () => {
       );
     },
     ratingRenderer: (params) => {
+      if (params.data?.isEndRow) return "";
+
       if (!params.value && params.value !== 0) {
         return <span>No Rating</span>;
       }
 
       let normalizedRating = params.value;
       if (params.colDef.field === "imdbRating") {
-        normalizedRating = params.value * 10; // Normalize IMDb (1-10) to 0-100
+        normalizedRating = params.value * 10;
       } else if (params.colDef.field === "metacriticRating") {
-        normalizedRating = parseFloat(params.value); // Ensure it's a number
+        normalizedRating = parseFloat(params.value);
       }
 
       const color = getRatingColor(normalizedRating);
       return (
         <span style={{ color, fontWeight: "bold" }}>
           {params.colDef.field === "rottenTomatoesRating"
-            ? `${params.value}%` // Add % for Metacritic
+            ? `${params.value}%`
             : params.value}
         </span>
       );
@@ -131,27 +148,34 @@ const MoviePage = () => {
   };
 
   const gridRef = useRef(null);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [year, setYear] = useState("");
   const [error, setError] = useState("");
 
   const handleSearch = () => {
     if (gridRef.current) {
-      gridRef.current.api.purgeInfiniteCache(); // Refresh the grid data
+      gridRef.current.api.purgeInfiniteCache();
     }
   };
 
   const dataSource = {
     getRows: async (params) => {
-      const { startRow, endRow } = params;
-      const page = Math.floor(startRow / 100) + 1; // Assuming 100 rows per page
+      const { startRow } = params;
+      const page = Math.floor(startRow / 100) + 1;
 
       try {
         const data = await fetchMovies(searchQuery, year, page);
         const rows = data.data || [];
-        const lastRow = rows.length < 100 ? startRow + rows.length : null;
+        const isLastPage = rows.length < 100;
 
+        if (isLastPage) {
+          rows.push({
+            isEndRow: true,
+            title: "End of Results",
+          });
+        }
+
+        const lastRow = isLastPage ? startRow + rows.length : null;
         params.successCallback(rows, lastRow);
       } catch (err) {
         console.error("Error fetching movies:", err);
@@ -162,7 +186,6 @@ const MoviePage = () => {
       }
     },
   };
-
 
   return (
     <div className="min-h-screen bg-cinema-dark text-cinema-lightdark p-6">
@@ -179,7 +202,7 @@ const MoviePage = () => {
           placeholder="Search by Title"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="px-4 py-2 rounded-md bg-cinema-gray text-white placeholder-cinema-dark focus:outline-none focus:ring-2 focus:ring-cinema-gold text-black"
+          className="px-4 py-2 rounded-md bg-cinema-gray placeholder-cinema-dark focus:outline-none focus:ring-2 focus:ring-cinema-gold text-black"
         />
         <select
           value={year}
@@ -211,9 +234,9 @@ const MoviePage = () => {
             columnDefs={columnDefs}
             components={components}
             datasource={dataSource}
-            domLayout="normal" // Change from "autoHeight" to "normal"
+            domLayout="normal"
             onGridReady={(params) => {
-              params.api.sizeColumnsToFit(); // Automatically adjusts column widths
+              params.api.sizeColumnsToFit();
             }}
           />
         </div>
