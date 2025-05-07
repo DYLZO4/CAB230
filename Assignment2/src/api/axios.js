@@ -1,5 +1,9 @@
 import axios from 'axios';
 
+axios.defaults.headers.common['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+axios.defaults.headers.common['Pragma'] = 'no-cache';
+axios.defaults.headers.common['Expires'] = '-1';
+
 const instance = axios.create({
   baseURL: 'http://4.237.58.241:3000',
 });

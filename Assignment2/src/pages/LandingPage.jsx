@@ -13,6 +13,9 @@ export default function LandingPage() {
     alignItems: "center", // Center vertically
   };
 
+  // Check if the JWT token exists in local storage
+  const isLoggedIn = !!localStorage.getItem('jwtToken');
+
   return (
     <div style={backgroundStyle}>
       <div className="text-center p-6">
@@ -24,12 +27,32 @@ export default function LandingPage() {
             Discover, explore, and track your favorite movies
           </p>
         </header>
-        <Link
-          to="/movies"
-          className="bg-cinema-red text-white rounded-lg px-6 py-3 text-lg font-medium transition hover:bg-cinema-gold"
-        >
-          Start Browsing
-        </Link>
+        
+        <div className="button-container flex justify-center gap-4"> {/* Flexbox container */}
+          <Link
+            to="/movies"
+            className="bg-cinema-red text-white rounded-lg px-6 py-3 text-lg font-medium transition hover:bg-cinema-gold"
+          >
+            Start Browsing
+          </Link>
+
+          {!isLoggedIn && (
+            <>
+              <Link
+                to="/login"
+                className="bg-cinema-red text-white rounded-lg px-6 py-3 text-lg font-medium transition hover:bg-cinema-gold"
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                className="bg-cinema-red text-white rounded-lg px-6 py-3 text-lg font-medium transition hover:bg-cinema-gold"
+              >
+                Register
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
