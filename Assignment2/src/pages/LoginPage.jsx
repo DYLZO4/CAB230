@@ -6,6 +6,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(""); 
+  const navigate = useNavigate();
 
    useEffect(() => {
       const jwtToken = localStorage.getItem("jwtToken");
