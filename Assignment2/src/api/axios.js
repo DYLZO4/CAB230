@@ -8,7 +8,7 @@ const instance = axios.create({
   baseURL: 'http://4.237.58.241:3000',
 });
 
-// Separate instance for refreshing tokens
+
 const refreshInstance = axios.create({
   baseURL: 'http://4.237.58.241:3000',
 });

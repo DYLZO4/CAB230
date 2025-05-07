@@ -1,32 +1,31 @@
 .my-custom-theme .ag-root-wrapper {
-    background-color: #1a1a1a; /* cinema.dark */
-    color: #D3D3D3; /* cinema.gray */
+    background-color: #1a1a1a; 
+    color: #D3D3D3; 
 }
 
 .my-custom-theme .ag-header {
-    background-color: #b71c1c; /* cinema.red */
-    color: #ffcc00; /* cinema.gold */
+    background-color: #b71c1c; 
+    color: #ffcc00; 
 }
 
 .my-custom-theme .ag-row:nth-child(odd) {
-    background-color: #121212; /* cinema.dark */
-    color: #D3D3D3; /* cinema.gray for better contrast */
+    background-color: #121212; 
+    color: #D3D3D3; 
 }
 
 .my-custom-theme .ag-row:nth-child(even) {
-    background-color: #121212; /* Slightly darker shade of cinema.dark */
-    color: #D3D3D3; /* cinema.gray for better contrast */
+    background-color: #121212; 
+    color: #D3D3D3; 
 }
 
 .my-custom-theme .ag-header-cell-resize {
-    background-color: #b71c1c; /* cinema.red */
+    background-color: #b71c1c; 
 }
 
-/* Ensure text in selected rows is visible */
 .my-custom-theme .ag-row-hover, 
 .my-custom-theme .ag-row-selected {
-    background-color: #333333; /* Slightly lighter shade for hover/selected rows */
-    color: #ffffff; /* White text for better visibility */
+    background-color: #333333;
+    color: #ffffff; 
 }
 
 .my-custom-theme .ag-root ::-webkit-scrollbar {

@@ -40,11 +40,11 @@ export default function RegisterPage() {
     try {
       await registerUser(email, password);
        try {
-            await loginUser(email, password); // Call to API to login
+            await loginUser(email, password); 
             navigate(-1);
        }catch (err) {
         console.error("Login failed:", err);
-        navigate("/login"); // Redirect to login page if login fails
+        navigate("/login"); 
       }
     } catch (err) {
       console.error("Registration failed:", err);

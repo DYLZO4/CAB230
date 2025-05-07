@@ -5,20 +5,19 @@ const MainLayout = () => {
   const location = useLocation();
   const currentPath = location.pathname;
 
-  // Simulate checking for a JWT token (replace with actual logic)
   const isLoggedIn = !!localStorage.getItem('jwtToken');
 
   const navLinkClass = (path) =>
     `text-sm font-medium px-4 py-2 rounded-lg transition ${
       currentPath === path
-        ? 'bg-cinema-red text-white' // Active link
-        : 'text-cinema-gray hover:bg-cinema-gold hover:text-cinema-dark' // Inactive link
+        ? 'bg-cinema-red text-white' 
+        : 'text-cinema-gray hover:bg-cinema-gold hover:text-cinema-dark' 
     }`;
 
   const handleLogout = async () => {
     try {
-      await logoutUser(localStorage.getItem('refreshToken')); // Wait for logout to complete
-      window.location.href = '/login'; // Redirect after logout
+      await logoutUser(localStorage.getItem('refreshToken')); 
+      window.location.href = '/login'; 
     } catch (error) {
       console.error('Logout failed:', error);
     }

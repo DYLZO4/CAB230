@@ -116,11 +116,11 @@ const MovieDetailsPage = () => {
         <div style={{ width: "100%" }} className="my-custom-theme">
           <AgGridReact
             columnDefs={columnDefs}
-            rowData={movie.principals || []} // Ensure rowData is an empty array if undefined
+            rowData={movie.principals || []} 
             components={components}
             domLayout="autoHeight"
             onGridReady={(params) => {
-              params.api.sizeColumnsToFit(); // Automatically adjusts column widths
+              params.api.sizeColumnsToFit(); 
             }}
           />
         </div>

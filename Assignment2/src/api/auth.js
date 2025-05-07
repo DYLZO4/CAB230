@@ -4,10 +4,10 @@ import api from './axios';
 export async function loginUser(email, password) {
   try {
     const response = await api.post('/user/login', { email, password });
-    const jwtToken = response.data.bearerToken.token; // Extract token from bearerToken
-    const refreshToken = response.data.refreshToken.token; // Extract token from refreshToken
+    const jwtToken = response.data.bearerToken.token; 
+    const refreshToken = response.data.refreshToken.token; 
 
-    // Store tokens in localStorage
+    
     localStorage.setItem('jwtToken', jwtToken);
     localStorage.setItem('refreshToken', refreshToken);
 

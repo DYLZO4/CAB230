@@ -46,7 +46,7 @@ const PersonDetails = () => {
       return (
         <a
           href={`/movies/${params.data.movieId}`}
-          style={{ textDecoration: "none", color: "#ffcc00" }} // Gold color for links
+          style={{ textDecoration: "none", color: "#ffcc00" }} 
         >
           {params.value}
         </a>
@@ -61,7 +61,6 @@ const PersonDetails = () => {
         const data = await fetchPersonDetails(id);
         setPerson(data);
 
-        // Initialize chart data
         setChartData({
           labels: data.roles.map((role) => role.movieName),
           datasets: [
@@ -96,7 +95,7 @@ const PersonDetails = () => {
       sortedData.push(node.data);
     });
 
-    // Update chart data based on sorted grid data
+   
     setChartData({
       labels: sortedData.map((role) => role.movieName),
       datasets: [
@@ -220,7 +219,7 @@ const PersonDetails = () => {
             onGridReady={(params) => {
               params.api.sizeColumnsToFit();
             }}
-            onSortChanged={handleSortChanged} // Listen for sort changes
+            onSortChanged={handleSortChanged} 
           />
         </div>
       </div>

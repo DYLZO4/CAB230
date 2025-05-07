@@ -5,8 +5,8 @@ export async function fetchMovies(searchQuery, year, page = 1) {
     const response = await api.get("/movies/search", {
       params: {
         title: searchQuery,
-        year: year || undefined, // Only include year if it's not empty
-        page: page, // Add page parameter
+        year: year || undefined, 
+        page: page, 
       },
     });
     return response.data;

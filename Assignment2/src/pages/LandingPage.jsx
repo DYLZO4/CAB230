@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import backgroundImage from "../assets/images/LandingPageBackground.jpg"; // Import the background image
+import backgroundImage from "../assets/images/LandingPageBackground.jpg"; 
 
 export default function LandingPage() {
   const backgroundStyle = {
@@ -8,12 +8,12 @@ export default function LandingPage() {
     backgroundPosition: "center",
     height: "100vh",
     width: "100%",
-    display: "flex", // Add Flexbox
-    justifyContent: "center", // Center horizontally
-    alignItems: "center", // Center vertically
+    display: "flex", 
+    justifyContent: "center", 
+    alignItems: "center", 
   };
 
-  // Check if the JWT token exists in local storage
+  
   const isLoggedIn = !!localStorage.getItem('jwtToken');
 
   return (
@@ -28,7 +28,7 @@ export default function LandingPage() {
           </p>
         </header>
         
-        <div className="button-container flex justify-center gap-4"> {/* Flexbox container */}
+        <div className="button-container flex justify-center gap-4"> 
           <Link
             to="/movies"
             className="bg-cinema-red text-white rounded-lg px-6 py-3 text-lg font-medium transition hover:bg-cinema-gold"

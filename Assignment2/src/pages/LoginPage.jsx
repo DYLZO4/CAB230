@@ -5,8 +5,7 @@ import { useNavigate } from "react-router-dom";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // State for error message
-  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState(""); 
 
    useEffect(() => {
       const jwtToken = localStorage.getItem("jwtToken");
@@ -18,11 +17,11 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await loginUser(email, password); // Call to API to login
-      navigate(-1); // Redirect to the previous page after successful login
+      await loginUser(email, password); 
+      navigate(-1); 
     } catch (err) {
       console.error("Login failed:", err);
-      setErrorMessage("Invalid credentials. Please try again."); // Set error message
+      setErrorMessage("Invalid credentials. Please try again."); 
     }
   };
 
@@ -32,7 +31,7 @@ export default function LoginPage() {
         <h2 className="text-2xl font-bold mb-6 text-center text-cinema-gold">
           Login
         </h2>
-        {errorMessage && ( // Display error message if it exists
+        {errorMessage && ( 
           <p className="text-cinema-red text-center mb-4">{errorMessage}</p>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
