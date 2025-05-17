@@ -1,39 +1,19 @@
 const express = require("express");
-const db = require("../config/db");
+const db = require("../../config/db");
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const authenticateJWT = require("../middlewares/auth");
 
-const authenticateJWT = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (authHeader) {
-    const parts = authHeader.split(' ');
-    if (parts.length !== 2 || parts[0] !== 'Bearer') {
-      return res.status(401).json({ error: true, message: "Authorization header ('Bearer token') not found" });
-    }
-    const token = parts[1];
-
-    jwt.verify(token, process.env.JWT_BEARER_SECRET, (err, user) => {
-      if (err) {
-        if (err.name === 'TokenExpiredError') {
-          return res.status(401).json({ error: true, message: 'Token expired', expired: true });
-        }
-        return res.status(401).json({ error: true, message: 'Invalid JWT token' });
-      }
-      req.user = user;
-      next();
-    });
-  } else {
-    return res.status(401).json({ error: true, message: "Authorization header ('Bearer token') not found" });
-  }
-};
-
-
+/**
+ * GET /:id
+ * Returns detailed information about a person (by ID) and their roles in various movies
+ * Protected (JWT required)
+ */
 router.get("/:id", authenticateJWT, async (req, res) => {
   try {
     const id = req.params.id;
 
-    // Check for invalid query parameters (same as before)
+    // Reject invalid query parameters
     const allowedQueryParams = [];
     const invalidParams = Object.keys(req.query).filter(param => !allowedQueryParams.includes(param));
     if (invalidParams.length > 0) {
@@ -43,6 +23,7 @@ router.get("/:id", authenticateJWT, async (req, res) => {
       });
     }
 
+    // Query the database for person details and their associated roles in movies
     const personData = await db("names")
       .leftJoin("principals", "names.nconst", "principals.nconst")
       .leftJoin("basics", "principals.tconst", "basics.tconst")
@@ -58,10 +39,12 @@ router.get("/:id", authenticateJWT, async (req, res) => {
       )
       .where("names.nconst", id);
 
+    // Return 404 if no records found for the provided person ID
     if (!personData || personData.length === 0) {
       return res.status(404).json({ error: true, message: "No record exists of a person with this ID" });
     }
 
+    // Build a structured response object
     const person = {
       name: personData[0].name,
       birthYear: parseInt(personData[0].birthYear) || null,
@@ -69,6 +52,7 @@ router.get("/:id", authenticateJWT, async (req, res) => {
       roles: []
     };
 
+    // Process roles associated with the person
     personData.forEach(role => {
       person.roles.push({
         movieName: role.movieName || null,
@@ -79,14 +63,16 @@ router.get("/:id", authenticateJWT, async (req, res) => {
       });
     });
 
-        person.roles.sort((a, b) => {
-        const movieIdA = a.movieId;
-        const movieIdB = b.movieId;
-        if (movieIdA < movieIdB) return -1;
-        if (movieIdA > movieIdB) return 1;
-        return 0; 
+    // Sort roles by movie ID to maintain consistent order
+    person.roles.sort((a, b) => {
+      const movieIdA = a.movieId;
+      const movieIdB = b.movieId;
+      if (movieIdA < movieIdB) return -1;
+      if (movieIdA > movieIdB) return 1;
+      return 0;
     });
 
+    // Return the final structured person object with roles
     res.json(person);
 
   } catch (error) {

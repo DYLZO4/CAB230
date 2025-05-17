@@ -2,19 +2,27 @@ const express = require("express");
 const moment = require("moment");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const db = require("../config/db"); // Your knex instance
-const authenticateJWT = require("../middlewares/auth"); // Your JWT authentication middleware
+const db = require("../../config/db"); // Knex instance
+const authenticateJWT = require("../middlewares/auth"); // JWT auth middleware
 const { body, validationResult } = require("express-validator");
+
 const router = express.Router();
 
-const JWT_BEARER_SECRET = process.env.JWT_BEARER_SECRET || "your_jwt_secret"; // keep secret safe
-const JWT_REFRESH_SECRET =
-  process.env.JWT_REFRESH_SECRET || "your_refresh_secret";
+// JWT configuration
+const JWT_BEARER_SECRET = process.env.JWT_BEARER_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+if (!JWT_BEARER_SECRET || !JWT_REFRESH_SECRET) {
+  throw new Error("JWT secrets must be set in environment variables.");
+}
 
-const DEFAULT_BEARER_EXPIRY = 600; // 10 mins
+const DEFAULT_BEARER_EXPIRY = 600; // 10 minutes
 const DEFAULT_REFRESH_EXPIRY = 86400; // 24 hours
 const LONG_EXPIRY = 31536000; // 1 year
-// POST /user/register - Register a new user
+
+/**
+ * POST /user/register
+ * Registers a new user with email and password
+ */
 router.post(
   "/register",
   [
@@ -45,22 +53,14 @@ router.post(
         });
       }
 
-      // Hash the password before saving it to the database
+      // Hash password and insert new user
       const hashedPassword = await bcrypt.hash(password, 10);
+      await db("users").insert({ email, password: hashedPassword });
 
-      // Insert the new user into the database
-      const [newUser] = await db("users").insert({
-        email,
-        password: hashedPassword,
-      }); //.returning('*');
-
-      // Respond with success message
-      return res.status(201).json({
-        message: "User created",
-      });
+      return res.status(201).json({ message: "User created" });
     } catch (err) {
       console.error(err);
-      res.status(500).json({
+      return res.status(500).json({
         error: true,
         message: "Internal server error",
       });
@@ -68,6 +68,10 @@ router.post(
   }
 );
 
+/**
+ * POST /user/logout
+ * Invalidates a refresh token
+ */
 router.post("/logout", async (req, res) => {
   const { refreshToken } = req.body;
 
@@ -80,35 +84,28 @@ router.post("/logout", async (req, res) => {
 
   try {
     const now = new Date();
-    const existingToken = await db("refresh_tokens")
-      .where({ token: refreshToken })
-      .first(); // Fetch the token first
+    const existingToken = await db("refresh_tokens").where({ token: refreshToken }).first();
 
     if (!existingToken) {
       return res.status(401).json({
         error: true,
-        message: "Invalid JWT token", // Not found in database
+        message: "Invalid JWT token",
       });
     }
 
     if (existingToken.expires_at < now) {
-      // Handle expired token differently
-      await db("refresh_tokens").where({ token: refreshToken }).del(); // Delete expired token
+      await db("refresh_tokens").where({ token: refreshToken }).del();
       return res.status(401).json({
         error: true,
         message: "JWT token has expired",
       });
     }
 
-    const deleted = await db("refresh_tokens")
-      .where({ token: refreshToken })
-      .del();
-
+    const deleted = await db("refresh_tokens").where({ token: refreshToken }).del();
     if (deleted === 0) {
-      // This should, ideally, never happen, but good to keep for robustness
       return res.status(500).json({
         error: true,
-        message: "Failed to invalidate token.  Please try again.",
+        message: "Failed to invalidate token. Please try again.",
       });
     }
 
@@ -125,11 +122,10 @@ router.post("/logout", async (req, res) => {
   }
 });
 
-// Helper to create JWT tokens
-function createToken(payload, secret, expiresIn) {
-  return jwt.sign(payload, secret, { expiresIn });
-}
-
+/**
+ * POST /user/login
+ * Authenticates user and issues bearer + refresh tokens
+ */
 router.post("/login", async (req, res) => {
   const {
     email,
@@ -147,33 +143,18 @@ router.post("/login", async (req, res) => {
   }
 
   try {
-    // Fetch user by email
     const user = await db("users").where("email", email).first();
-    if (!user) {
-      return res
-        .status(401)
-        .json({ error: true, message: "Incorrect email or password" }); // Improved: 404 for security
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({
+        error: true,
+        message: "Incorrect email or password",
+      });
     }
 
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res
-        .status(401)
-        .json({ error: true, message: "Incorrect email or password" }); // More specific error message
-    }
+    const bearerExpiry = longExpiry ? LONG_EXPIRY : bearerExpiresInSeconds || DEFAULT_BEARER_EXPIRY;
+    const refreshExpiry = longExpiry ? LONG_EXPIRY : refreshExpiresInSeconds || DEFAULT_REFRESH_EXPIRY;
 
-    // Calculate expiry times
-    const bearerExpiry = longExpiry
-      ? LONG_EXPIRY
-      : bearerExpiresInSeconds || DEFAULT_BEARER_EXPIRY;
-
-    const refreshExpiry = longExpiry
-      ? LONG_EXPIRY
-      : refreshExpiresInSeconds || DEFAULT_REFRESH_EXPIRY; // Spec defines refreshExpiresInSeconds as boolean, but treating as number for practical use.
-
-    // Generate tokens
-    const bearerToken = jwt.sign({ userId: user.id }, JWT_BEARER_SECRET, {
+    const bearerToken = jwt.sign({ userId: user.userId, email: user.email }, JWT_BEARER_SECRET, {
       expiresIn: bearerExpiry,
     });
 
@@ -183,9 +164,9 @@ router.post("/login", async (req, res) => {
 
     await db("refresh_tokens").insert({
       token: refreshToken,
-      user_id: user.id, // Assuming you have a user_id column
-      expires_at: new Date(Date.now() + refreshExpiry * 1000), // Calculate expiration date
-      created_at: new Date(Date.now()),
+      user_id: user.id,
+      expires_at: new Date(Date.now() + refreshExpiry * 1000),
+      created_at: new Date(),
     });
 
     return res.status(200).json({
@@ -202,19 +183,17 @@ router.post("/login", async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
-
-    // OpenAPI spec includes a 429 response, but rate limiting is not defined.  Not implementing rate limiting at this time.
-    // If implemented in the future, this section should be updated to return a 429 response with appropriate headers and body.
-
-    return res
-      .status(500)
-      .json({ error: true, message: "Internal server error" }); // Consistent JSON error response
+    return res.status(500).json({ error: true, message: "Internal server error" });
   }
 });
 
+/**
+ * POST /user/refresh
+ * Refreshes JWT tokens using a valid refresh token
+ */
 router.post("/refresh", async (req, res) => {
-  const { refreshToken, bearerExpiresInSeconds, refreshExpiresInSeconds } =
-    req.body;
+  const { refreshToken, bearerExpiresInSeconds, refreshExpiresInSeconds } = req.body;
+
   if (!refreshToken) {
     return res.status(400).json({
       error: true,
@@ -223,7 +202,7 @@ router.post("/refresh", async (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
 
     const tokenRecord = await db("refresh_tokens")
       .where({ token: refreshToken, user_id: decoded.userId })
@@ -236,32 +215,24 @@ router.post("/refresh", async (req, res) => {
       });
     }
 
-    // Use test-specified expiry times if provided, otherwise use defaults
-    const bearerExpiresIn = bearerExpiresInSeconds || 600;
-    const refreshExpiresIn = refreshExpiresInSeconds || 86400;
-
+    const bearerExpiresIn = bearerExpiresInSeconds || DEFAULT_BEARER_EXPIRY;
+    const refreshExpiresIn = refreshExpiresInSeconds || DEFAULT_REFRESH_EXPIRY;
     const expiresAt = new Date(Date.now() + refreshExpiresIn * 1000);
 
-    const bearerToken = jwt.sign(
-      { userId: decoded.userId }, // Removed email from payload
-      process.env.JWT_BEARER_SECRET,
-      { expiresIn: bearerExpiresIn }
-    );
+    const bearerToken = jwt.sign({ userId: decoded.userId }, JWT_BEARER_SECRET, {
+      expiresIn: bearerExpiresIn,
+    });
 
-    const newRefreshToken = jwt.sign(
-      { userId: decoded.userId }, // Removed email from payload
-      process.env.JWT_REFRESH_SECRET,
-      { expiresIn: refreshExpiresIn }
-    );
+    const newRefreshToken = jwt.sign({ userId: decoded.userId }, JWT_REFRESH_SECRET, {
+      expiresIn: refreshExpiresIn,
+    });
 
-    await db("refresh_tokens")
-      .where({ token: refreshToken, user_id: decoded.userId })
-      .del();
+    await db("refresh_tokens").where({ token: refreshToken, user_id: decoded.userId }).del();
     await db("refresh_tokens").insert({
       user_id: decoded.userId,
       token: newRefreshToken,
       expires_at: expiresAt,
-      created_at: new Date(Date.now()),
+      created_at: new Date(),
     });
 
     return res.status(200).json({
@@ -278,24 +249,21 @@ router.post("/refresh", async (req, res) => {
     });
   } catch (err) {
     console.error("Refresh token error:", err);
-
     if (err.name === "TokenExpiredError") {
-      return res
-        .status(401)
-        .json({ error: true, message: "JWT token has expired" });
+      return res.status(401).json({ error: true, message: "JWT token has expired" });
     }
     if (err.name === "JsonWebTokenError") {
-      return res
-        .status(401)
-        .json({ error: true, message: "Invalid JWT token" });
+      return res.status(401).json({ error: true, message: "Invalid JWT token" });
     }
 
-    return res
-      .status(500)
-      .json({ error: true, message: "Internal server error" }); // Generic server error
+    return res.status(500).json({ error: true, message: "Internal server error" });
   }
 });
 
+/**
+ * GET /user/:email/profile
+ * Retrieves public or private profile depending on authentication
+ */
 router.get("/:email/profile", async (req, res, next) => {
   const { email } = req.params;
 
@@ -309,62 +277,58 @@ router.get("/:email/profile", async (req, res, next) => {
       return res.status(404).json({ error: true, message: "User not found" });
     }
 
-    // Basic profile by default
     let profile = {
       email: user.email,
       firstName: user.firstName ?? null,
       lastName: user.lastName ?? null,
     };
 
-    // If no auth header, return basic profile
     if (!req.headers.authorization) {
       return res.status(200).json(profile);
     }
 
-    // If auth header is present, use authenticateJWT middleware manually
-    authenticateJWT(req, res, async () => {
-      // If authenticated and user email matches requested profile
+    // Attempt to authenticate for full profile access
+    authenticateJWT(req, res, async (authErr) => {
+      if (authErr) {
+        return res.status(401).json({ error: true, message: "Invalid token" });
+      }
+
       if (req.user?.email === email) {
         profile = {
           ...profile,
-          dob: user.dob !== undefined ? user.dob : null,
-          address: user.address !== undefined ? user.address : null,
+          dob: user.dob && moment(user.dob).isValid() ? moment(user.dob).format("YYYY-MM-DD") : null,
+          address: user.address ?? null,
         };
       }
+
       return res.status(200).json(profile);
     });
-
   } catch (err) {
-    console.error(err);
+    console.error("Error in /:email/profile:", err);
     return res.status(500).json({ error: true, message: "Internal server error" });
   }
 });
 
-router.put("/:email/profile", async (req, res) => {
+/**
+ * PUT /user/:email/profile
+ * Updates profile details for an authenticated user
+ */
+router.put("/:email/profile", authenticateJWT, async (req, res) => {
   const { email } = req.params;
-  const authHeader = req.headers.authorization;
   const profileData = req.body;
 
-  // Input validation
   if (!email) {
     return res.status(400).json({ error: true, message: "Email is required" });
   }
 
   const requiredFields = ["firstName", "lastName", "dob", "address"];
-  const missingFields = requiredFields.filter(
-    (field) => !(field in profileData)
-  );
- if (missingFields.length > 0) {
-  const last = missingFields.pop();
-  const fieldList = missingFields.length
-    ? missingFields.join(", ") + " and " + last
-    : last;
+  const missingFields = requiredFields.filter((field) => !(field in profileData));
 
-  return res.status(400).json({
-    error: true,
-    message: `Request body incomplete: ${fieldList} are required.`,
-  });
-  
+  if (missingFields.length > 0) {
+    return res.status(400).json({
+      error: true,
+      message: `Request body incomplete: firstName, lastName, dob and address are required.`,
+    });
   }
 
   const stringFields = ["firstName", "lastName", "address"];
@@ -372,16 +336,11 @@ router.put("/:email/profile", async (req, res) => {
     (field) => typeof profileData[field] !== "string"
   );
 
-  if (missingFields.length > 0) {
-  const last = missingFields.pop();
-  const fieldList = missingFields.length
-    ? missingFields.join(", ") + " and " + last
-    : last;
-
-  return res.status(400).json({
-    error: true,
-    message: `Request body incomplete: ${fieldList} must be strings .`,
-  });
+  if (invalidStringFields.length > 0) {
+    return res.status(400).json({
+      error: true,
+      message: `Request body invalid: firstName, lastName and address must be strings only.`,
+    });
   }
 
   if (!moment(profileData.dob, "YYYY-MM-DD", true).isValid()) {
@@ -391,56 +350,33 @@ router.put("/:email/profile", async (req, res) => {
     });
   }
 
-  if (!authHeader) {
-    return res.status(401).json({
+  if (moment(profileData.dob).isAfter(moment())) {
+    return res.status(400).json({
       error: true,
-      message: "Authorization header ('Bearer token') not found",
+      message: "Invalid input: dob must be a date in the past.",
     });
   }
 
-  if (!authHeader.startsWith("Bearer ")) {
-    return res
-      .status(401)
-      .json({ error: true, message: "Authorization header is malformed" });
-  }
-
-  const token = authHeader.split(" ")[1];
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_BEARER_SECRET);
-
-    if (decoded.email !== email) {
+    if (req.user.email !== email) {
       return res.status(403).json({ error: true, message: "Forbidden" });
     }
 
-    try {
-      const user = await db("users").where("email", email).first();
-
-      if (!user) {
-        return res.status(404).json({ error: true, message: "User not found" });
-      }
-
-      // Update the user profile in the database
-      await db("users").where("email", email).update(profileData);
-
-      const updatedUser = { ...user, ...profileData }; // create the object to return
-      delete updatedUser.password; // dont return password
-      return res.status(200).json(updatedUser);
-    } catch (dbError) {
-      console.error("Database error:", dbError);
-      return res
-        .status(500)
-        .json({ error: true, message: "Internal server error" });
+    const user = await db("users").where("email", email).first();
+    if (!user) {
+      return res.status(404).json({ error: true, message: "User not found" });
     }
-  } catch (jwtError) {
-    if (jwtError.name === "TokenExpiredError") {
-      return res
-        .status(401)
-        .json({ error: true, message: "JWT token has expired" });
-    }
-    return res.status(401).json({ error: true, message: "Invalid JWT token" });
+
+    await db("users").where("email", email).update(profileData);
+    profileData.dob = moment(profileData.dob, "YYYY-MM-DD").format("YYYY-MM-DD");
+    const updatedUser = { ...user, ...profileData };
+    delete updatedUser.password;
+
+    return res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ error: true, message: "Internal server error" });
   }
 });
-
 
 module.exports = router;
